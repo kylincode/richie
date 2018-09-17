@@ -50,18 +50,15 @@ class OrganizationPluginTestCase(TestCase):
             fill_banner=True,
             fill_logo=True,
             fill_description=True,
+            should_publish=True,
         )
         organization_page = organization.extended_object
 
         # Create a page to add the plugin to
         page = create_i18n_page({"en": "A page", "fr": "Une page"})
         placeholder = page.placeholders.get(slot="maincontent")
-        add_plugin(
-            placeholder, OrganizationPlugin, "en", **{"organization": organization}
-        )
-        add_plugin(
-            placeholder, OrganizationPlugin, "fr", **{"organization": organization}
-        )
+        add_plugin(placeholder, OrganizationPlugin, "en", organization=organization)
+        add_plugin(placeholder, OrganizationPlugin, "fr", organization=organization)
 
         page.publish("en")
         page.publish("fr")
@@ -74,8 +71,8 @@ class OrganizationPluginTestCase(TestCase):
         # And CMS page title should be in title attribute of the link
         self.assertContains(
             response,
-            '<a href="{url}" title="{page_title}">'.format(
-                url=organization_page.get_absolute_url(), page_title="Sorbonne en"
+            '<a class="organization-plugin__body" href="{url}"'.format(
+                url=organization_page.get_absolute_url()
             ),
             status_code=200,
         )
@@ -83,10 +80,10 @@ class OrganizationPluginTestCase(TestCase):
 
         # The organization's logo should be present with the expected resizing
         self.assertContains(response, ".png__216.0x120.0_q85_subsampling-2.png")
-        # The organization's full name should be wrapped in a h2
+
         self.assertContains(
             response,
-            '<h2 class="organization-plugin__body__title">Sorbonne en</h2>',
+            '<div class="organization-plugin__title">Sorbonne en</div>',
             html=True,
         )
 
@@ -95,16 +92,15 @@ class OrganizationPluginTestCase(TestCase):
         response = self.client.get(url)
         self.assertContains(
             response,
-            '<a href="{url}" title="{page_title}">'.format(
-                url=organization_page.get_absolute_url(), page_title="Sorbonne fr"
+            '<a class="organization-plugin__body" href="{url}"'.format(
+                url=organization_page.get_absolute_url()
             ),
             status_code=200,
         )
         self.assertContains(response, "Sorbonne fr", html=True)
         self.assertContains(response, ".png__216.0x120.0_q85_subsampling-2.png")
-        # The organization's full name should be wrapped in a h2
         self.assertContains(
             response,
-            '<h2 class="organization-plugin__body__title">Sorbonne fr</h2>',
+            '<div class="organization-plugin__title">Sorbonne fr</div>',
             html=True,
         )
