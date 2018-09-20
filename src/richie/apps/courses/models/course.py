@@ -208,6 +208,25 @@ class CourseRun(models.Model):
         self.full_clean()
         super().save(*args, **kwargs)
 
+    @property
+    def state(self):
+        """Return the state of the course run at the current time."""
+        now = timezone.now()
+        if self.start < now:
+            if self.end > now:
+                if self.enrollment_end > now:
+                    return "is_open"
+                else:
+                    return "is_ongoing"
+            else:
+                return "is_archived"
+        elif self.enrollment_start > now:
+            return "is_coming"
+        elif self.enrollment_end > now:
+            return "is_open"
+        else:
+            return "is_closed"
+
 
 class Licence(models.Model):
     """
